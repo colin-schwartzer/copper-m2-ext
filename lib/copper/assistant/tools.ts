@@ -181,6 +181,56 @@ export async function checkAvailability(
   };
 }
 
+export const compareProductsInput = z.object({
+  products: z.array(productId).length(2),
+});
+
+export type CompareProductsInput = z.infer<typeof compareProductsInput>;
+
+export type Comparison =
+  | {
+      status: "ok";
+      products: {
+        id: ProductId;
+        name: string;
+        type: string;
+        priceUsd: number;
+        features: string[];
+        colors: string[];
+      }[];
+      /** Price of the first product minus the second; negative when it is cheaper. */
+      priceDifferenceUsd: number;
+    }
+  | { status: "same_product"; message: string };
+
+/** compare_products: two products side by side, read from the catalog. */
+export function compareProducts(input: CompareProductsInput): Comparison {
+  const [first, second] = input.products;
+  if (first === second) {
+    return {
+      status: "same_product",
+      message: "Pick two different products to compare.",
+    };
+  }
+  const catalog = getProducts();
+  const products = input.products.map((id) => {
+    const p = catalog.find((c) => c.id === id)!;
+    return {
+      id: p.id,
+      name: p.name,
+      type: p.type,
+      priceUsd: p.priceUsd,
+      features: p.features.map((f) => f.name),
+      colors: p.colors,
+    };
+  });
+  return {
+    status: "ok",
+    products,
+    priceDifferenceUsd: cents(products[0].priceUsd - products[1].priceUsd),
+  };
+}
+
 export const copperTools = {
   get_products: tool({
     description:
@@ -205,5 +255,11 @@ export const copperTools = {
       "Check whether a Copper product is in stock, for every color or one color, and when back-ordered colors arrive.",
     inputSchema: checkAvailabilityInput,
     execute: async (input) => checkAvailability(input),
+  }),
+  compare_products: tool({
+    description:
+      "Compare two different Copper products side by side: price, what each one is, its features and colors, and the price difference.",
+    inputSchema: compareProductsInput,
+    execute: async (input) => compareProducts(input),
   }),
 } satisfies ToolSet;

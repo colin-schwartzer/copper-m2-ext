@@ -101,7 +101,7 @@ the page so shoppers (and students) can see how the answer was found.
 | Progress | `lib/copper/assistant/progress.ts` | The steps and reply the panel draws, plus `TOOL_LABELS` |
 | Live values | `lib/ai/live.ts` | `createLive()` / `readLive()`: a chain of promises, so a Server Action can stream without an API route |
 | Streaming calls | `lib/ai/call.ts` | `callStream()` (logged to `ai_calls` like `callText`) and `THOUGHT_SUMMARIES` |
-| Tools | `lib/copper/assistant/tools.ts` | `get_products`, `get_prices` and `calculate_cost` (from `lib/copper/catalog.ts`), `check_availability` (from `lib/copper/inventory.ts`) |
+| Tools | `lib/copper/assistant/tools.ts` | `get_products`, `get_prices` and `calculate_cost` (from `lib/copper/catalog.ts`), `check_availability` (from `lib/copper/inventory.ts`), and the extension's fifth tool `compare_products` (two products side by side, from `lib/copper/catalog.ts`) |
 | Instructions | `lib/copper/assistant/instructions.ts` | Copper's system prompt: voice, always use tools, prices and stock only |
 | Data | `lib/copper/inventory.ts`, `lib/supabase/server.ts`, `supabase/migrations/` | `readInventory()` reads the Supabase `inventory` table fresh on every call: `sku`, `product`, `color`, `units_in_stock`, `next_shipment`. Returns `null` if Supabase isn't set up or can't be read |
 | AI calls | `lib/ai/call.ts` (module 2, `ask-copper`) | Gemini 2.5 Flash by default, up to 5 steps per question, about $0.0005 each |
