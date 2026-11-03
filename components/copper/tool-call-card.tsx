@@ -7,6 +7,8 @@ import type {
   Availability,
   CalculateCostInput,
   CheckAvailabilityInput,
+  Comparison,
+  CompareProductsInput,
   CostBreakdown,
   Prices,
   ProductList,
@@ -65,6 +67,9 @@ function Sent({ call }: { call: ToolStep }) {
       ["Product", productName(input.product)],
       ["Color", input.color ?? "Every color"],
     ];
+  } else if (call.name === "compare_products") {
+    const input = call.input as CompareProductsInput;
+    rows = [["Compare", input.products.map(productName).join(" and ")]];
   } else if (call.name === "get_prices") {
     return (
       <p className="text-muted-foreground italic">
@@ -166,6 +171,41 @@ function CameBack({ call }: { call: ToolStep }) {
             />
           ))}
       </ul>
+    );
+  }
+  if (call.name === "compare_products") {
+    const output = call.output as Comparison;
+    if (output.status === "same_product") {
+      return <p className="text-muted-foreground italic">{output.message}</p>;
+    }
+    return (
+      <>
+        <ul className="space-y-2.5">
+          {output.products.map((product) => (
+            <li key={product.id}>
+              <Line label={product.name} value={formatUsd(product.priceUsd)} />
+              <p className="text-muted-foreground text-xs">{product.type}</p>
+              <p className="mt-1 text-xs">{product.features.join(" · ")}</p>
+              <ul className="mt-1 flex flex-wrap gap-1">
+                {product.colors.map((color) => (
+                  <li
+                    key={color}
+                    className="bg-accent/15 text-accent rounded-full px-2 py-0.5 text-xs font-semibold"
+                  >
+                    {color}
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+        <div className="border-foreground/80 mt-2 flex items-baseline justify-between border-t-2 pt-2">
+          <span className="font-heading font-bold">Price difference</span>
+          <span className="font-heading text-primary text-lg font-extrabold tabular-nums">
+            {formatUsd(Math.abs(output.priceDifferenceUsd))}
+          </span>
+        </div>
+      </>
     );
   }
   if (call.name === "check_availability") {
